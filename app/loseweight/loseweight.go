@@ -4,7 +4,7 @@ import "OriginBoost/app/loseweight/utils"
 
 
 // return the result after reducing similarity
-func loseweight(query string) []string {
+func Loseweight(query string) []string {
 	resString := make([]string, 7)
 	resString[0] = utils.Method1(query)
 	resString[1] = utils.Method2(query)

@@ -1,91 +1,30 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"encoding/json"
+	"OriginBoost/config"
+	bitconfig "OriginBoost/pkg/config"
+	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"math/rand"
-	"net/http"
-	"net/url"
-	"os"
-	"strconv"
-	"time"
-
-	"github.com/joho/godotenv"
+	l "OriginBoost/app/loseweight"
 )
 
 
 
+func init() {
+	config.Initialize()
+	
+}
 
 func main() {
-	// load .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	// 配置初始化，依赖命令行 --env 参数
+    var env string
+    flag.StringVar(&env, "env", "", "加载 .env 文件，如 --env=testing 加载的是 .env.testing 文件")
+    flag.Parse()
+    bitconfig.InitConfig(env)
+	reslice := l.Loseweight("我曾经自认为是个自由主义者，但后来我发现，我之所以捍卫那些 我没有真正思考过的立场，是因为这些立场是自由主义信条的一部分。 只有立场却没有是非，这是不可取的。")
+    for _, v := range reslice {
+		fmt.Println(v)
 	}
-	appid := os.Getenv("APPID")
-	appkey := os.Getenv("APPKEY")
-	
-	fromLang := "en"
-	toLang := "zh"
-	endpoint := "http://api.fanyi.baidu.com"
-	path := "/api/trans/vip/translate"
-	query := "Hello World!"
-
-	salt := strconv.Itoa(randInt(32768, 65536))
-	sign := makeMd5(appid + query + salt + appkey)
-
-	data := url.Values{
-		"appid":  {appid},
-		"q":      {query},	
-		"from":   {fromLang},
-		"to":     {toLang},
-		"salt":   {salt},
-		"sign":   {sign},
-	}
-
-	response, err := http.PostForm(endpoint+path, data)
-	if err != nil {
-		panic(err)
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	var result map[string]interface{}
-	json.Unmarshal(body, &result)
-	//fmt.Println(result)
-	extractField(result)
-	//resultJSON, _ := json.MarshalIndent(result, "", "    ")
-	//fmt.Println(string(resultJSON))
 }
 
-func extractField(result map[string]interface{}) {
-	if result == nil {
-		log.Fatal("The original extract field is nil")
-	}
-	from := result["from"].(string)
-	to := result["to"].(string)
-	temp_result := result["trans_result"].([]interface{})
-	trans_result := temp_result[0].(map[string]interface{})
-	dst := trans_result["dst"].(string)
-	src := trans_result["src"].(string)
-	fmt.Println(from, to, dst, src)
-}
 
-func makeMd5(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-func randInt(min int, max int) int {
-	rand.Seed(time.Now().UnixNano())
-	return min + rand.Intn(max-min)
-}

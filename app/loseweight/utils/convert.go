@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"OriginBoost/pkg/config"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -10,44 +11,27 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"os"
+
 	"strconv"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
-var APPID, APPKEY, ENDPOINT, PATH string 
-
-func init() {
-	fmt.Println("Initializing variables")
-	// load .env file
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	APPID = os.Getenv("APPID")
-	APPKEY = os.Getenv("APPKEY")
-
-	ENDPOINT = "http://api.fanyi.baidu.com"
-	PATH = "/api/trans/vip/translate"
-}
-
+//var APPID, APPKEY, ENDPOINT, PATH string
+ 
 
 func Convert(query, fromLang, toLang string) string {
 	salt := strconv.Itoa(randInt(32768, 65536))
-	sign := makeMd5(APPID + query + salt +APPKEY)
+	sign := makeMd5(config.Get("appid") + query + salt +config.Get("appkey"))
 
 	data := url.Values{
-		"appid":  {APPID},
+		"appid":  {config.Get("appid")},
 		"q":      {query},	
 		"from":   {fromLang},
 		"to":     {toLang},
 		"salt":   {salt},
 		"sign":   {sign},
 	}
-
-	response, err := http.PostForm(ENDPOINT+PATH, data)
+	response, err := http.PostForm(config.Get("endpoint")+config.Get("path"), data)
 	if err != nil {
 		panic(err)
 	}
