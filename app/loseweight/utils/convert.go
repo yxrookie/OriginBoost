@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/md5"
@@ -17,29 +17,29 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var APPID, APPKEY, ENDPOINT, PATH string 
 
-
-
-func main() {
+func init() {
+	fmt.Println("Initializing variables")
 	// load .env file
-	err := godotenv.Load()
+	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	appid := os.Getenv("APPID")
-	appkey := os.Getenv("APPKEY")
-	
-	fromLang := "en"
-	toLang := "zh"
-	endpoint := "http://api.fanyi.baidu.com"
-	path := "/api/trans/vip/translate"
-	query := "Hello World!"
+	APPID = os.Getenv("APPID")
+	APPKEY = os.Getenv("APPKEY")
 
+	ENDPOINT = "http://api.fanyi.baidu.com"
+	PATH = "/api/trans/vip/translate"
+}
+
+
+func Convert(query, fromLang, toLang string) string {
 	salt := strconv.Itoa(randInt(32768, 65536))
-	sign := makeMd5(appid + query + salt + appkey)
+	sign := makeMd5(APPID + query + salt +APPKEY)
 
 	data := url.Values{
-		"appid":  {appid},
+		"appid":  {APPID},
 		"q":      {query},	
 		"from":   {fromLang},
 		"to":     {toLang},
@@ -47,7 +47,7 @@ func main() {
 		"sign":   {sign},
 	}
 
-	response, err := http.PostForm(endpoint+path, data)
+	response, err := http.PostForm(ENDPOINT+PATH, data)
 	if err != nil {
 		panic(err)
 	}
@@ -60,10 +60,25 @@ func main() {
 
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
-	//fmt.Println(result)
-	extractField(result)
-	//resultJSON, _ := json.MarshalIndent(result, "", "    ")
-	//fmt.Println(string(resultJSON))
+	if result == nil {
+		log.Fatal("The original extract field is nil")
+	}
+	temp_result := result["trans_result"].([]interface{})
+	trans_result := temp_result[0].(map[string]interface{})
+	dst := trans_result["dst"].(string)
+	return dst
+}
+
+
+func makeMd5(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func randInt(min int, max int) int {
+	rand.Seed(time.Now().UnixNano())
+	return min + rand.Intn(max-min)
 }
 
 func extractField(result map[string]interface{}) {
@@ -77,15 +92,4 @@ func extractField(result map[string]interface{}) {
 	dst := trans_result["dst"].(string)
 	src := trans_result["src"].(string)
 	fmt.Println(from, to, dst, src)
-}
-
-func makeMd5(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-func randInt(min int, max int) int {
-	rand.Seed(time.Now().UnixNano())
-	return min + rand.Intn(max-min)
 }
