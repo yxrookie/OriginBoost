@@ -15,8 +15,6 @@ import (
 	"strconv"
 	"time"
 )
-
-//var APPID, APPKEY, ENDPOINT, PATH string
  
 
 func Convert(query, fromLang, toLang string) string {

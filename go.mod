@@ -5,6 +5,7 @@ go 1.21.4
 require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/viper v1.18.2
+	github.com/yanyiwu/gojieba v1.3.0
 )
 
 require (
