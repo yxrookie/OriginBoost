@@ -18,6 +18,13 @@ import (
  
 
 func Convert(query, fromLang, toLang string) string {
+	tmep := config.Get("appid")
+	if tmep != "" {
+		fmt.Println(tmep)
+	} else {
+		fmt.Println("无法取出")
+	}
+
 	salt := strconv.Itoa(randInt(32768, 65536))
 	sign := makeMd5(config.Get("appid") + query + salt +config.Get("appkey"))
 
