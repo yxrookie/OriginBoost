@@ -3,12 +3,13 @@ package similarity
 import (
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/yanyiwu/gojieba"
 )
 
-func Sortres(old string, tempstring []string) []string {
-	res := make([]string, 0)
+func Sortres(old string, tempstring []string) [][]string {
+	res := make([][]string, 0)
 	simslice := make([]float64, len(tempstring))
 	silmap := make(map[float64]string)
 
@@ -35,8 +36,10 @@ func Sortres(old string, tempstring []string) []string {
 	sort.Float64s(simslice)
 
 	for i := 0; i < len(simslice); i++ {
-		fmt.Print(simslice[i], " ")
-		res = append(res, silmap[simslice[i]])
+		//fmt.Print(simslice[i], " ")
+		// 将小数转换为字符串，并保留两位小数
+		similarity := strconv.FormatFloat(simslice[i], 'f', 2, 64)
+		res = append(res, []string{similarity, silmap[simslice[i]]})
 	}
 	return res
 }
